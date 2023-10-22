@@ -1,0 +1,33 @@
+SUMMARY = "bitbake-layers recipe"
+DESCRIPTION = "Simple helloworld application"
+LICENSE = "MIT"
+
+PR = "r0"
+
+SRC_URI += " \
+    file://run-second-screen.sh \
+    file://weston.ini \
+"
+
+LICENSE = "CLOSED"
+S = "${WORKDIR}"
+
+do_configure[noexec] = "1"
+do_compile[noexec] = "1"
+
+do_install() {
+    install -d ${D}${bindir}
+    install -m 0755 run-second-screen.sh ${D}${bindir}
+    echo D: ${D}
+    echo bindir: ${bindir}
+
+    echo sysconfdir: ${sysconfdir}
+    echo ${sysconfdir}: $(test -d ${sysconfdir} && echo exist || echo not exist)
+    echo ${sysconfdir}/xdg: $(test -d ${sysconfdir}/xdg && echo exist || echo not exist)
+    echo ${sysconfdir}/xdg/weston: $(test -d ${sysconfdir}/xdg/weston && echo exist || echo not exist)
+    # install -d ${sysconfdir}/xdg
+    install -d ${D}${sysconfdir}/xdg/weston/
+    install -m 0311 weston.ini ${D}${sysconfdir}/xdg/weston/weston.ini.default
+}
+
+RDEPENDS:${PN} += "bash"
