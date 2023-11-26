@@ -5,9 +5,18 @@
 #echo "[info] you should use '^]' to stop qemu"
 #trap "stty intr ^C" EXIT
 
+echo "[info] TAP_MODE: ${TAP_MODE:-true}"
+if ${TAP_MODE}; then
+	echo "[info] load environment: x86-64_qemu_tap-1.env"
+	source x86-64_qemu_tap-1.env
+	echo "[info] create tap network"
+	BRIDGE_ADDR=${BRIDGE_ADDR}/24 ./create_tap.sh
+	trap "./clean_tap.sh" EXIT
+else
+	echo "[info] load environment: x86-64_qemu.env"
+	source x86-64_qemu.env
+fi
 
-echo "[info] load environment"
-source x86-64_qemu.env
 
 if [ -n "${KVM}" ] && [ ! -e "/dev/kvm" ];
 then
@@ -24,7 +33,7 @@ then
 fi
 
 
-#create_tap.sh
+
 
 
 echo "[info] start qemu"
