@@ -1,6 +1,7 @@
 #!/bin/env python3
 
 from matplotlib.backend_bases import MouseButton, KeyEvent
+from time import sleep
 
 from figure import FigureControl
 from target import WestonControl, AGLControl, AndroidControl
@@ -43,9 +44,15 @@ class RemoteGui(FigureControl):
             if click_start == click_last:
                 print("Touch input")
                 self.tgt.touch_screen(click_start)
+                sleep(0.5)
+                self.tgt.get_screenshot()
+                self.show_image()
             else:
                 print("Swipe input")
                 self.tgt.swipe_screen(click_start, click_last)
+                sleep(0.5)
+                self.tgt.get_screenshot()
+                self.show_image()
 
     def cb_key_press(self, event):
         FigureControl.cb_key_press(self, event)

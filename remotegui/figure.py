@@ -36,7 +36,7 @@ class FigureControl:
 
         self.register_callback()
         self.show_image()
-        print("FigureControl init: end")
+        print("FigureControl init: end\n")
 
     def register_callback(self):
         self.fig.canvas.mpl_connect('button_press_event',   self.cb_button_press)
@@ -58,7 +58,7 @@ class FigureControl:
         else:
             self.im.set_data(screen_image)
         self.fig.canvas.draw()
-        print("show_image: updated")
+        print("show_image: updated\n")
 
     def wait_close(self):
         plt.show()

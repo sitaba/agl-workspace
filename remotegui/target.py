@@ -117,6 +117,7 @@ class WestonControl(TargetControl):
         self.xdg_runtime_dir = None
         self.wayland_socket = None
         self.weston_debug = False
+        self.remote_input = False
         self.get_screen_command = "weston-screenshooter"
         self.temporary_filename = "/tmp/screen.png"
 
@@ -125,7 +126,8 @@ class WestonControl(TargetControl):
 
     def target_check(self):
         # Check wether compositor is launched with debug
-        if self.do_remote_cmd("journalctl --no-pager | grep weston | grep -- --debug").returncode == 0:
+        # if self.do_remote_cmd("ps aux | grep 'weston.ini' | grep -- --debug").returncode == 0:
+        if '--debug' in self.do_remote_cmd("ps aux | grep 'weston.ini'").stdout:
             self.weston_debug = True
         else:
             self.weston_debug = False
@@ -143,6 +145,12 @@ class WestonControl(TargetControl):
         else:
             self.wayland_socket = None
 
+        # Check wether remote-input is enabled
+        if self.do_remote_cmd("systemctl is-active remote-input").returncode == 0:
+            self.remote_input = True
+        else:
+            self.remote_input = False
+
     def target_setup(self):
         # If target is not ready, use this method to be ready.
         print("[WestonControl] Not implemented: target_setup")
@@ -153,6 +161,13 @@ class WestonControl(TargetControl):
             print("    launched with '--debug':", self.weston_debug)
             print("    XDG_RUNTIME_DIR:", self.xdg_runtime_dir)
             print("    WAYLAND_DISPLAY:", self.wayland_socket)
+            exit()
+        else:
+            return True
+
+    def is_controllable(self):
+        if self.remote_input == False:
+            print("Remote input is not ready")
             return False
         else:
             return True
@@ -162,7 +177,8 @@ class WestonControl(TargetControl):
             return
         self.do_remote_cmd("rm /home/root/*png", info=False)
         result = self.do_remote_cmd(
-                "XDG_RUNTIME_DIR="+self.xdg_runtime_dir + " " + "WAYLAND_DISPLAY="+self.wayland_socket + " " + self.get_screen_command)
+                "XDG_RUNTIME_DIR="+self.xdg_runtime_dir + " " + 
+                "WAYLAND_DISPLAY="+self.wayland_socket + " " + self.get_screen_command)
         if result.returncode != 0:
             return
         result = self.do_remote_cmd("mv /home/root/*png" + " " + self.temporary_filename)
@@ -183,10 +199,27 @@ class WestonControl(TargetControl):
         print("[WestonControl] Not implemented: get_recorde_data")
 
     def touch_screen(self, xy):
-        print("[WestonControl] Not implemented: touch_screen")
+        if self.is_controllable() == False:
+            return
+        print("[WestonControl] Test implemented: touch_screen")
+        x, y = xy
+        result = self.do_remote_cmd("input touchscreen tap " + str(x) + " " + str(y))
+        if result.returncode != 0:
+            print("Failed: touchscreen tap")
+        else:
+            print("Success: touchscreen tap")
 
     def swipe_screen(self, xy_begin, xy_end, period=0.1):
-        print("[WestonControl] Not implemented: swipe_screen")
+        if self.is_controllable() == False:
+            return
+        print("[WestonControl] Test implemented: swipe_screen")
+        x1, y1 = xy_begin
+        x2, y2 = xy_end
+        result = self.do_remote_cmd("input swipe " + str(x1) + " " + str(y1) + " " + str(x2) + " " + str(y2))
+        if result.returncode != 0:
+            print("Failed: swipe")
+        else:
+            print("Success: swipe")
 
 
 class AGLControl(WestonControl):

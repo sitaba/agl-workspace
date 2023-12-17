@@ -1,0 +1,13 @@
+[Unit]
+Description=Remote control service
+
+[Service]
+Type=simple
+Environment=DEBUG=true
+Environment=PIPE_NAME=/tmp/remote-input
+ExecStartPre=/bin/bash -c "if [ ! -e ${PIPE_NAME} ]; then mkfifo ${PIPE_NAME}; fi"
+ExecStart=/usr/bin/remote-input
+ExecStop=/bin/bash -c "if [ -e ${PIPE_NAME} ]; then rm ${PIPE_NAME}; fi"
+
+[Install]
+WantedBy=default.target
